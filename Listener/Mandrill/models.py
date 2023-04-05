@@ -1,13 +1,12 @@
 from django.db import models
 from django.utils import timezone
 
-# Create your models here.
-
 
 class WebhookMessage(models.Model):
     event_id = models.CharField(unique=True, max_length=48)
     message = models.JSONField()
-    # not using auto_add_now intentionally
+
+    # not using auto_add_now intentionally, so we can set it manually if needed
     created_at = models.DateTimeField(default=timezone.now, blank=True)
 
     # Going to save some values from the message for faster querying
