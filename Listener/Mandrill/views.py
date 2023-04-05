@@ -48,8 +48,7 @@ class WebhookListener(ListAPIView, GenericAPIView):
         messages = WebhookMessage.objects.bulk_create(
             webhook_messages, ignore_conflicts=True)
 
-        messages = WebhookMessage.objects.filter(
-            id__in=[message.id for message in messages])
+        messages = WebhookMessage.objects.filter(event_id__in=[message.event_id for message in webhook_messages])
         open_count = messages.filter(type='open').count()
 
         # Send a notification to the frontend with the number of opens
@@ -57,7 +56,7 @@ class WebhookListener(ListAPIView, GenericAPIView):
         async_to_sync(channel_layer.group_send)(
             "notifications", {
                 "type": "send_notification",
-                "message": f"{open_count} new opens"
+                "message": f"{open_count} new opens, {len(messages)} new messages, {len(mandrill_events)} events received",
             })
 
         # Return a 200 response
