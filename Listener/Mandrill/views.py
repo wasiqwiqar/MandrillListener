@@ -24,17 +24,7 @@ class WebhookListener(ListAPIView, GenericAPIView):
         return super().get_queryset()
 
     def post(self, request, *args, **kwargs):
-        # Expected JSON format:
-        # {
-        #   mandrill_events: [
-        #     {
-        #      "event": "send",
-        #      "msg": {
-        #              "_id": "5f7b1c0f0c5d4c0c8c1c1c1c",
-        #       }
-        #   ],
-        # }
-
+        # Expected response format is in README.md 
         # Get the events from the request
         mandrill_events = request.data.get('mandrill_events')
 
