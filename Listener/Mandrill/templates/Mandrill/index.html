@@ -1,48 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8"/>
-        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <meta name="description" content="Lorem ipsum"/>
-        <meta name="keywords" content="Lorem ipsum"/>
-        <title>Mandrill Listener</title>
-        {% comment %} Vue.js & axios {% endcomment %}
-        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-        <script src="https://cdn.tailwindcss.com"></script>
-    </head>
-    <body>
-        <div id="app" class="grid gap-3 grid-cols-2">
-            <div class="p-3">
-                <h1 class="text-3xl">Recent Events (10)</h1>
-                <div v-for='event in events' :key="event.id" class="d-flex">
-                    <div class="flex-1">
-                        <p class="text-lg text-indigo-500 font-bold">[[ event.type]]</p>
-                        <p class="text-sm font-mono text-xs p-2 bg-indigo-200">[[ event ]]</p>
-                    </div>
-                </div>
-            </div>
+  <head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Lorem ipsum"/>
+    <meta name="keywords" content="Lorem ipsum"/>
+    <title>Mandrill Listener</title>
+    {% comment %} Vue.js & axios {% endcomment %}
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <div id="app" class="grid gap-3 grid-cols-2">
+      <div class="p-3">
+        <h1 class="text-3xl">Recent Events (10)</h1>
+        <div v-for='event in events' :key="event.id" class="d-flex">
+          <div class="flex-1">
+            <p class="text-lg text-indigo-500 font-bold">[[ event.type]]</p>
+            <p class="text-sm font-mono text-xs p-2 bg-indigo-200">[[ event ]]</p>
+          </div>
         </div>
-        <script>
-            const { createApp } = Vue
-            createApp({
-                delimiters: ['[[', ']]'], // because Django uses curly braces
-                data() {
-                    return {
-                        events: []
-                    }
-                },
-                mounted() {
-                    axios.get('/webhook/?limit=10')
-                        .then(response => {
-                            this.events = response.data
-                        })
-                        .catch(error => {
-                            console.log(error)
-                        })
-                }
-            }).mount('#app')
-        </script>
-    </body>
+      </div>
+      <div class="p-3">
+        <h1 class="text-3xl">Notifications</h1>
+        <div>
+          <label class="block text-gray-700 text-sm font-bold mb-2">
+            Send a notification via the websocket
+            <button @click="notificationTest"
+                    class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
+              Test
+            </button>
+          </label>
+          <div v-for="notification in notifications"
+               :key="notification"
+               class="flex justify-between bg-green-100 p-2 mb-2">
+            <div class="text-lg font-bold">[[ notification.message ]]</div>
+            <button @click="fetchEvents; removeNotification(notification)"
+                    class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-1 px-2 rounded">
+              Reload
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+    const { createApp } = Vue
+    createApp({
+        delimiters: ['[[', ']]'], // because Django uses curly braces
+        data() {
+            return {
+                events: [],
+                connection: null,
+                notifications: []
+            }
+        },
+        mounted() {
+            this.fetchEvents()
+        },
+        methods: {
+            notificationTest() {
+                this.connection.send(JSON.stringify({
+                    'message': `Test notification sent at ${new Date().toLocaleTimeString()}`
+                }))
+            },
+            fetchEvents() {
+              axios.get('/webhook/?limit=10')
+                .then(response => {
+                    this.events = response.data
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+            },
+            removeNotification(notification) {
+                this.notifications = this.notifications.filter(n => n !== notification)
+            }
+
+        },
+        created() {
+            this.connection = new WebSocket(`ws://${window.location.host}/ws/notifications/`)
+            this.connection.onmessage = e => {
+              const data = JSON.parse(e.data)
+              this.notifications.unshift(data)
+            }
+            this.connection.onclose = e => {
+              console.error('Notification socket closed unexpectedly')
+            }
+        }
+    }).mount('#app')
+    </script>
+  </body>
 </html>
