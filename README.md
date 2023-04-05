@@ -3,6 +3,8 @@ This is a simple listener that will listen for Mandrill events and then store th
 
 * No authentication is required to view the events, permission classes were not used but can be added if required.
 
+> **Warning:** This is not a production-ready application, you will need to follow Django's deployment checklist and set up environment variables & authentication before deployment.
+
 ## How to run
 1. Clone the repository
 2. Create a virtual environment, on Windows: `py -m venv venv`
