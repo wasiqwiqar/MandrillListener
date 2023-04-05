@@ -41,6 +41,7 @@ Currently using an in-memory cache for the notifications, `redis` can be used to
 
 ## What I would add
 * User authentication before they can view the events.
+* Pagination for the events
 * Mandrill's validation system to ensure that the events are coming from Mandrill.
 * An error handling and logging system to store failed events and messages in a separate table.
 * Database storage for the notifications that are sent to users, implemented asynchrnously.
