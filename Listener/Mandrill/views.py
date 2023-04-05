@@ -3,6 +3,8 @@ from .models import WebhookMessage
 from .serializers import WebhookMessageSerializer
 from rest_framework.response import Response
 from rest_framework import status
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 
 class WebhookListener(ListAPIView, GenericAPIView):
@@ -18,7 +20,15 @@ class WebhookListener(ListAPIView, GenericAPIView):
 
         if limit is not None:
             self.queryset = self.queryset[:int(limit)]
-        
+
+        # Send a welcome message to the frontend
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "notifications", {
+                "type": "send_notification",
+                "message": "Welcome to the Webhook Listener!\nNotifications working as intended"
+            })
+
         return super().get_queryset()
 
     def post(self, request, *args, **kwargs):
@@ -53,8 +63,19 @@ class WebhookListener(ListAPIView, GenericAPIView):
             webhook_messages.append(webhook_message)
 
         # Save the messages to the database in a single hit
-        WebhookMessage.objects.bulk_create(
+        messages = WebhookMessage.objects.bulk_create(
             webhook_messages, ignore_conflicts=True)
+        
+        messages = WebhookMessage.objects.filter(id__in=[message.id for message in messages])
+        open_count = messages.filter(type='open').count()
+
+        # Send a notification to the frontend with the number of opens
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "notifications", {
+                "type": "send_notification",
+                "message": f"{open_count} new opens"
+            })
 
         # Return a 200 response
         return Response(status=status.HTTP_200_OK)

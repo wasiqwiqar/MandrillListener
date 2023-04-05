@@ -16,6 +16,9 @@
     <div id="app" class="grid gap-3 grid-cols-2">
       <div class="p-3">
         <h1 class="text-3xl">Recent Events (10)</h1>
+        <a href="{% url 'webhook' %}">
+          <button class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded mb-2">API Endpoint</button>
+        </a>
         <div v-for='event in events' :key="event.id" class="d-flex">
           <div class="flex-1">
             <p class="text-lg text-indigo-500 font-bold">[[ event.type]]</p>
@@ -26,17 +29,15 @@
       <div class="p-3">
         <h1 class="text-3xl">Notifications</h1>
         <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2">
-            Send a notification via the websocket
-            <button @click="notificationTest"
-                    class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
-              Test
-            </button>
-          </label>
+          <label class="block text-gray-700 text-sm font-bold mb-2">Send a notification via the websocket</label>
+          <button @click="notificationTest"
+                  class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded mb-2">
+            Test
+          </button>
           <div v-for="notification in notifications"
                :key="notification"
                class="flex justify-between bg-green-100 p-2 mb-2">
-            <div class="text-lg font-bold">[[ notification.message ]]</div>
+            <div class="text-lg whitespace-pre	">[[ notification.message ]]</div>
             <button @click="fetchEvents; removeNotification(notification)"
                     class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-1 px-2 rounded">
               Reload
@@ -48,47 +49,46 @@
     <script>
     const { createApp } = Vue
     createApp({
-        delimiters: ['[[', ']]'], // because Django uses curly braces
-        data() {
-            return {
-                events: [],
-                connection: null,
-                notifications: []
-            }
-        },
-        mounted() {
-            this.fetchEvents()
-        },
-        methods: {
-            notificationTest() {
-                this.connection.send(JSON.stringify({
-                    'message': `Test notification sent at ${new Date().toLocaleTimeString()}`
-                }))
-            },
-            fetchEvents() {
-              axios.get('/webhook/?limit=10')
-                .then(response => {
-                    this.events = response.data
-                })
-                .catch(error => {
-                    console.log(error)
-                })
-            },
-            removeNotification(notification) {
-                this.notifications = this.notifications.filter(n => n !== notification)
-            }
-
-        },
-        created() {
-            this.connection = new WebSocket(`ws://${window.location.host}/ws/notifications/`)
-            this.connection.onmessage = e => {
-              const data = JSON.parse(e.data)
-              this.notifications.unshift(data)
-            }
-            this.connection.onclose = e => {
-              console.error('Notification socket closed unexpectedly')
-            }
+      delimiters: ['[[', ']]'], // because Django uses curly braces
+      data() {
+        return {
+          events: [],
+          connection: null,
+          notifications: []
         }
+      },
+      mounted() {
+        this.fetchEvents()
+      },
+      methods: {
+        notificationTest() {
+          this.connection.send(JSON.stringify({
+              'message': `Test notification sent at ${new Date().toLocaleTimeString()}`
+          }))
+        },
+        fetchEvents() {
+          axios.get('/webhook/?limit=10')
+            .then(response => {
+              this.events = response.data
+            })
+            .catch(error => {
+              console.log(error)
+            })
+        },
+        removeNotification(notification) {
+          this.notifications = this.notifications.filter(n => n !== notification)
+        }
+      },
+      created() {
+        this.connection = new WebSocket(`ws://${window.location.host}/ws/notifications/`)
+        this.connection.onmessage = e => {
+          const data = JSON.parse(e.data)
+          this.notifications.unshift(data)
+        }
+        this.connection.onclose = e => {
+          console.error('Notification socket closed unexpectedly')
+        }
+      }
     }).mount('#app')
     </script>
   </body>

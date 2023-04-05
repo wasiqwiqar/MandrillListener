@@ -36,3 +36,6 @@ class WebhookMessage(models.Model):
     ]
 
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+
+    class Meta:
+        ordering = ['-created_at']
