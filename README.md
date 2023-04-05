@@ -49,13 +49,14 @@ Currently using an in-memory cache for the notifications, `redis` can be used to
 ## Expected Mandrill Event Format:
 ```json
 {
-    mandrill_events: [ // Array of events
+    "mandrill_events": [
         {
-            "event": "send", // Event type
-            "msg": { // Message object
-                    "_id": "5f7b1c0f0c5d4c0c8c1c1c1c", // Unique ID for this event
+            "event": "send", 
+            "msg": { 
+                    "_id": "5f7b1c0f0c5d4c0c8c1c1c1c",
+            }
         }
-    ],
+    ]
 }
 ```
 
