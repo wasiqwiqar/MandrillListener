@@ -78,7 +78,7 @@
                :key="notification"
                class="flex justify-between bg-green-100 p-2 mb-2">
             <div class="text-lg whitespace-pre	">[[ notification.message ]]</div>
-            <button @click="fetchEvents; removeNotification(notification)"
+            <button @click="fetchEvents(); removeNotification(notification)"
                     class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-1 px-2 rounded">
               Reload
             </button>
