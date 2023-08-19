@@ -1,3 +1,5 @@
+### This repository was made for a technical assignment
+
 # Welcome to the Mandrill Listener repository!
 This is a simple listener that will listen for Mandrill events and then store them in a database.
 
